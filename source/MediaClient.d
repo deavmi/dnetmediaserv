@@ -53,8 +53,14 @@ public final class MediaClient : Thread
         /* Get the command */
         byte command = commandBytes[0];
 
-        /* The response */
+        /* The full response */
         byte[] responseBytes;
+
+        /* Partial response */
+        byte[] partialResponse;
+
+        /* The status */
+        bool status;
 
         /* If the user wants to upload a file */
         if(command == 0)
@@ -124,7 +130,7 @@ public final class MediaClient : Thread
             }
             
             /* Return the hash as the media handle */
-            responseBytes ~= cast(byte[])hashString;
+            partialResponse ~= cast(byte[])hashString;
         }
         /* If the user wants to fetch a media item */
         else if(command == 1)
@@ -143,15 +149,22 @@ public final class MediaClient : Thread
             /* TODO: Get length */
 
             /* Read in `filenameLength` bytes */
+            /* TODO `partialResponse` */
         }
         /* Unknown command */
         else
         {
-            
+            /* Set status to false */
+            status = false;
         }
 
-        /* TODO: Send response */
-        finish: sendMessage(socket, responseBytes);
+        finish:
+            /* Construct full response */
+            responseBytes ~= [status];
+            responseBytes ~= partialResponse;
+            
+            /* Send the response */
+            sendMessage(socket, responseBytes);
     }
 
     override public string toString()
