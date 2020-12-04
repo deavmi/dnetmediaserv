@@ -6,6 +6,9 @@ import bmessage;
 import gogga;
 import std.conv : to;
 import std.digest.md;
+import std.file;
+import std.stdio;
+import std.exception;
 
 public final class MediaClient : Thread
 {
@@ -75,10 +78,51 @@ public final class MediaClient : Thread
             /* Hash filename+file to generate item key */
             byte[] hashItem = cast(byte[])filename~fileBytes;
             ubyte[] hash = new MD5Digest().digest(hashItem);
-            gprintln("Hash is: "~toHexString(hash), DebugType.WARNING);
+            string hashString = toHexString(hash);
+            gprintln("Hash is: "~hashString, DebugType.WARNING);
 
             /* TODO: Make a directory named after the hash and store file data in it and named as filename */
+            
+            try
+            {
+                /* Create a directory named after the hash */
+                mkdir("uploads/"~hashString);
+            }
+            catch(FileException e)
+            {
+                gprintln("Error occured whilst creating hash directory: "~to!(string)(e), DebugType.ERROR);
+                goto finish;
+            }
 
+
+            try
+            {
+                /* Store the file name in `name` */
+                File nameFile;
+                nameFile.open("uploads/"~hashString~"/name");
+                nameFile.rawWrite(cast(byte[])filename);
+                nameFile.close();
+            }
+            catch(ErrnoException e)
+            {
+                gprintln("Error occured whilst creating name file: "~to!(string)(e), DebugType.ERROR);
+                goto finish;
+            }
+
+            try
+            {
+                /* Store the data in `data` */
+                File dataFile;
+                dataFile.open("uploads/"~hashString~"/data");
+                dataFile.rawWrite(fileBytes);
+                dataFile.close();
+            }
+            catch(ErrnoException e)
+            {
+                gprintln("Error occured whilst creating name file: "~to!(string)(e), DebugType.ERROR);
+                goto finish;
+            }
+            
             /* Return the hash as the media handle */
             responseBytes ~= cast(byte[])hash;
         }
@@ -107,7 +151,7 @@ public final class MediaClient : Thread
         }
 
         /* TODO: Send response */
-        sendMessage(socket, responseBytes);
+        finish: sendMessage(socket, responseBytes);
     }
 
     override public string toString()
