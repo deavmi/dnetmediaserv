@@ -119,7 +119,7 @@ public final class MediaClient : Thread
             }
             catch(ErrnoException e)
             {
-                gprintln("Error occured whilst creating name file: "~to!(string)(e), DebugType.ERROR);
+                gprintln("Error occured whilst creating data file: "~to!(string)(e), DebugType.ERROR);
                 goto finish;
             }
             
