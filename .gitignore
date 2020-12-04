@@ -1,0 +1,15 @@
+.dub
+docs.json
+__dummy.html
+docs/
+/mediaserv
+mediaserv.so
+mediaserv.dylib
+mediaserv.dll
+mediaserv.a
+mediaserv.lib
+mediaserv-test-*
+*.exe
+*.o
+*.obj
+*.lst
