@@ -124,7 +124,7 @@ public final class MediaClient : Thread
             }
             
             /* Return the hash as the media handle */
-            responseBytes ~= cast(byte[])hash;
+            responseBytes ~= cast(byte[])hashString;
         }
         /* If the user wants to fetch a media item */
         else if(command == 1)
