@@ -132,24 +132,65 @@ public final class MediaClient : Thread
             /* Return the hash as the media handle */
             partialResponse ~= cast(byte[])hashString;
         }
-        /* If the user wants to fetch a media item */
+        /* If the user wants to fetch a media item's filename */
         else if(command == 1)
+        {
+            /* Read in the hash */
+            byte[] hashLengthBytes = commandBytes[1..5];
+            int hashLength = *cast(int*)hashLengthBytes.ptr;
+            string hashString = toHexString(cast(ubyte[])commandBytes[5..5+hashLength]);
+
+            /* Read the file's name */
+            try
+            {
+                /* Open the file for reading */
+                File nameFile;
+                nameFile.open("uploads/"~hashString~"/name");
+                
+                /* Read the file's contents */
+                byte[] fileData;
+                fileData.length = nameFile.size;
+                fileData = nameFile.rawRead(fileData);
+                nameFile.close();
+
+                /* Save the file name */
+                partialResponse ~= fileData;
+            }
+            catch(ErrnoException e)
+            {
+                gprintln("Error occured whilst reading name file: "~to!(string)(e), DebugType.ERROR);
+                goto finish;
+            }
+        }
+        /* If the user wants to fetch a media item's data */
+        else if(command == 2)
         {
             /* TODO: Read in the hash */
             byte[] hashLengthBytes = commandBytes[1..5];
             int hashLength = *cast(int*)hashLengthBytes.ptr;
             string hashString = toHexString(cast(ubyte[])commandBytes[5..5+hashLength]);
-            
 
-            /* TODO: Fetch the filename */
-            /* TODO: Fetch the file bytes */
+            /* Read the file's data */
+            try
+            {
+                /* Open the file for reading */
+                File dataFile;
+                dataFile.open("uploads/"~hashString~"/data");
+                
+                /* Read the file's contents */
+                byte[] fileData;
+                fileData.length = dataFile.size;
+                fileData = dataFile.rawRead(fileData);
+                dataFile.close();
 
-            /* Read the filename length in */
-            byte[] filenameLengthBytes = commandBytes[1..4];
-            /* TODO: Get length */
-
-            /* Read in `filenameLength` bytes */
-            /* TODO `partialResponse` */
+                /* Save the file name */
+                partialResponse ~= fileData;
+            }
+            catch(ErrnoException e)
+            {
+                gprintln("Error occured whilst reading data file: "~to!(string)(e), DebugType.ERROR);
+                goto finish;
+            }
         }
         /* Unknown command */
         else
